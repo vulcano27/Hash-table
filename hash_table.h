@@ -11,6 +11,11 @@ typedef struct {
 
 
 static ht_item* ht_new_item(const char* k, const char* v);
+
 ht_hash_table* ht_new();
+
 static void ht_del_item(ht_item* i);
+
 void ht_del_hash_table(ht_hash_table* ht);
+
+static int ht_hash(const char* s, const int a, const int m);

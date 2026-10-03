@@ -78,5 +78,5 @@ char* ht_search(ht_hash_table* ht, const char* key) {
         item = ht->items[index];
         attempt++;
     }
-    return item->value;
+    return NULL;
 }

@@ -7,6 +7,8 @@
 #define HT_PRIME_1 151
 #define HT_PRIME_2 163
 
+static ht_item APAGADO = {NULL, NULL};
+
 
 static ht_item* ht_new_item(const char* k, const char* v){
     ht_item* i = malloc(sizeof(ht_item));
@@ -57,13 +59,18 @@ static int ht_get_hash(const char* s, const int num_buckets, const int attempt) 
 
 void ht_insert(ht_hash_table* ht, const char* key, const char* value){
     ht_item* item = ht_new_item(key, value);
-    int index;
-    int i;
-    do{
-        index = ht_get_hash(item->key,ht->size, i);
-        i++;
+    int index = ht_get_hash(key, ht->size, 0);
+    ht_item* item_atual = ht->items[index];
+    int attempt = 1;
+    while(item != NULL){
+        if(item != &APAGADO && strcmp(key, item->key) == 0){
+            ht_del_item(item_atual);
+            ht->items[index] = item;
+            return;
+        }
+        item_atual = ht_get_hash(key, ht->size, attempt);
+        attempt++;
     }
-    while(ht->items[index] != NULL);
     ht->items[index] = item;
     ht->count++;
 }
@@ -73,10 +80,26 @@ char* ht_search(ht_hash_table* ht, const char* key) {
     ht_item* item = ht->items[index];
     int attempt = 1;
     while(item != NULL){
-        if(strcmp(key, item->key) == 0) return item->value;
+        if(item != &APAGADO && strcmp(key, item->key) == 0) return item->value;
         index = ht_get_hash(key, ht->size, attempt);
         item = ht->items[index];
         attempt++;
     }
     return NULL;
+}
+
+void ht_delete(ht_hash_table* ht, const char* key){
+    int index = ht_get_hash(key, ht->size, 0);
+    ht_item* item = ht->items[index];
+    int attemp = 1;
+    while(item != NULL){
+        if(item != &APAGADO && strcmp(key, item->key) == 0){
+            ht_del_item(ht->items[index]);
+            ht->items[index] = &APAGADO;
+        }
+        index = ht_get_hash(key, ht->size, attemp);
+        item = ht->items[index];
+        attemp++;
+    }
+    ht->count--;
 }

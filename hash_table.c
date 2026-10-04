@@ -84,9 +84,11 @@ static void ht_resize_down(ht_hash_table* ht) {
 
 
 static void ht_del_item(ht_item* i) {
-    free(i->key);
-    free(i->value);
-    free(i);
+    if(i != NULL){
+        free(i->key);
+        free(i->value);
+        free(i);
+    }
 }
 
 

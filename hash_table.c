@@ -4,6 +4,7 @@
 
 #include "hash_table.h"
 #include "prime.h"
+#include "xmalloc.h"
 
 #define HT_PRIME_1 151
 #define HT_PRIME_2 163
@@ -101,7 +102,7 @@ static int ht_get_hash(const char* s, const int num_buckets, const int attempt) 
 void ht_insert(ht_hash_table* ht, const char* key, const char* value){
     const int load = ht->count * 100 / ht->size;
     if(load > 70) ht_resize_up(ht);
-    
+
     if(load < 10) ht_resize_down(ht);
 
     ht_item* item = ht_new_item(key, value);

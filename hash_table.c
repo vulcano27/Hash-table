@@ -54,6 +54,19 @@ static void ht_resize(ht_hash_table* ht, const int base_size){
     ht_del_hash_table(new_ht);
 }
 
+
+static void ht_resize_up(ht_hash_table* ht) {
+    const int new_size = ht->base_size * 2;
+    ht_resize(ht, new_size);
+}
+
+
+static void ht_resize_down(ht_hash_table* ht) {
+    const int new_size = ht->base_size / 2;
+    ht_resize(ht, new_size);
+}
+
+
 static void ht_del_item(ht_item* i) {
     free(i->key);
     free(i->value);
@@ -86,6 +99,11 @@ static int ht_get_hash(const char* s, const int num_buckets, const int attempt) 
 }
 
 void ht_insert(ht_hash_table* ht, const char* key, const char* value){
+    const int load = ht->count * 100 / ht->size;
+    if(load > 70) ht_resize_up(ht);
+    
+    if(load < 10) ht_resize_down(ht);
+
     ht_item* item = ht_new_item(key, value);
     int index = ht_get_hash(key, ht->size, 0);
     ht_item* item_atual = ht->items[index];

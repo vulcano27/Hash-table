@@ -11,7 +11,21 @@
 #define HT_PRIME_2 163
 #define HT_INITIAL_BASE_SIZE 50
 
+//Declaração das static
+
 static ht_item APAGADO = {NULL, NULL};
+
+static ht_item* ht_new_item(const char* k, const char* v);
+
+static ht_hash_table* ht_new_sized(const int base_size);
+
+static void ht_resize(ht_hash_table* ht, const int base_size);
+
+static void ht_del_item(ht_item* i);
+
+static int ht_hash(const char* s, const int a, const int m);
+
+static int ht_get_hash(const char* s, const int num_buckets, const int attempt);
 
 
 static ht_item* ht_new_item(const char* k, const char* v){
@@ -49,7 +63,7 @@ static void ht_resize(ht_hash_table* ht, const int base_size){
     ht->size = new_ht->size;
     new_ht->size = tmp_size;
 
-    const int tmp_items = ht->items; //ponteiro para a array de ponteiros de itens
+    ht_item** tmp_items = ht->items; //ponteiro para a array de ponteiros de itens
     ht->items = new_ht->items;
     new_ht->items = tmp_items;
 
@@ -116,7 +130,7 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value){
             ht->items[index] = item;
             return;
         }
-        item_atual = ht_get_hash(key, ht->size, attempt);
+        item_atual = ht->items[ht_get_hash(key, ht->size, attempt)];
         attempt++;
     }
     ht->items[index] = item;

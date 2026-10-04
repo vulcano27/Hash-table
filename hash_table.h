@@ -15,25 +15,11 @@ typedef struct {
 
 //Criação da hash table
 
-static ht_item* ht_new_item(const char* k, const char* v);
-
 ht_hash_table* ht_new();
-
-static ht_hash_table* ht_new_sized(const int base_size);
-
-static void ht_resize(ht_hash_table* ht, const int base_size);
 
 //Libertação de memória
 
-static void ht_del_item(ht_item* i);
-
 void ht_del_hash_table(ht_hash_table* ht);
-
-//Funções de hashing e double hashing (para colisões)
-
-static int ht_hash(const char* s, const int a, const int m);
-
-static int ht_get_hash(const char* s, const int num_buckets, const int attempt);
 
 //Métodos
 

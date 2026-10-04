@@ -1,3 +1,5 @@
+#include <math.h>
+
 int is_prime(const int x) {
     if (x < 2) return -1;
     for (int i = 2; i <= sqrt(x); i++) {

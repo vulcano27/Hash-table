@@ -94,17 +94,17 @@ static void ht_del_item(ht_item* i) {
 
 void ht_del_hash_table(ht_hash_table* ht) {
     for (int i = 0; i < ht->size; i++)
-        if (ht->items[i] != NULL) 
+        if (ht->items[i] != NULL && ht->items[i] != &APAGADO) 
             ht_del_item(ht->items[i]);       
     free(ht->items);
     free(ht);
 }
 
 static int ht_hash(const char* s, const int a, const int m) {
-    long hash = 0;
+    unsigned long long hash = 0;
     const int len_s = strlen(s);
     for (int i = 0; i < len_s; i++) {
-        hash += (long)pow(a, len_s - (i+1)) * s[i];
+        hash += (unsigned long long)pow(a, len_s - (i+1)) * s[i];
         hash = hash % m;
     }
     return (int)hash;
@@ -123,17 +123,18 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value){
     if(load < 10) ht_resize_down(ht);
 
     ht_item* item = ht_new_item(key, value);
-    int index = ht_get_hash(key, ht->size, 0);
+    int index = ht_get_hash(item->key, ht->size, 0);
     ht_item* item_atual = ht->items[index];
     int attempt = 1;
-    while(item != NULL){
-        if(item != &APAGADO && strcmp(key, item->key) == 0){
+    while(item_atual != NULL){
+        if(item_atual != &APAGADO && strcmp(item_atual->key, item->key) == 0){
             ht_del_item(item_atual);
             ht->items[index] = item;
             return;
         }
-        item_atual = ht->items[ht_get_hash(key, ht->size, attempt)];
         attempt++;
+        index = ht_get_hash(key, ht->size, attempt);
+        item_atual = ht->items[index];
     }
     ht->items[index] = item;
     ht->count++;
@@ -167,3 +168,5 @@ void ht_delete(ht_hash_table* ht, const char* key){
     }
     ht->count--;
 }
+
+

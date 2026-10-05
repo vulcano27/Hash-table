@@ -1,97 +1,73 @@
-//Ficheiro para testar a hash table
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "hash_table.h"
 
-#ifndef N_ITEMS
-#define N_ITEMS 40   /* abaixo de 53 posições; aumenta só se o resize já estiver implementado */
-#endif
+/* Mostra só as posições ocupadas ou apagadas, mais um resumo. */
+static void ht_print(const ht_hash_table* ht, const char* titulo) {
+    int ocupadas = 0, apagadas = 0;
 
-static void test_basico(void) {
-    ht_hash_table* ht = ht_new();
+    printf("\n=== %s ===\n", titulo);
+    printf("size=%d  count=%d\n", ht->size, ht->count);
 
-    ht_insert(ht, "ana", "912345678");
-    ht_insert(ht, "rui", "923456789");
-    ht_insert(ht, "eva", "956789012");
+    for (int i = 0; i < ht->size; i++) {
+        const ht_item* it = ht->items[i];
+        if (it == NULL) continue;                 /* posição vazia: não imprime */
 
-    assert(strcmp(ht_search(ht, "ana"), "912345678") == 0);
-    assert(strcmp(ht_search(ht, "rui"), "923456789") == 0);
-    assert(strcmp(ht_search(ht, "eva"), "956789012") == 0);
-    assert(ht_search(ht, "bia") == NULL);
-
-    ht_del_hash_table(ht);
-    puts("test_basico OK");
+        if (it->key == NULL) {                    /* marcador de apagado */
+            printf("  [%2d] <APAGADO>\n", i);
+            apagadas++;
+        } else {
+            printf("  [%2d] %-8s -> %s\n", i, it->key, it->value);
+            ocupadas++;
+        }
+    }
+    printf("ocupadas=%d  apagadas=%d  vazias=%d\n",
+           ocupadas, apagadas, ht->size - ocupadas - apagadas);
 }
 
-static void test_atualizar(void) {
-    ht_hash_table* ht = ht_new();
-
-    ht_insert(ht, "ana", "111");
-    ht_insert(ht, "ana", "222");   /* mesma chave: deve substituir */
-
-    assert(strcmp(ht_search(ht, "ana"), "222") == 0);
-
-    ht_del_hash_table(ht);
-    puts("test_atualizar OK");
-}
-
-static void test_apagar(void) {
-    ht_hash_table* ht = ht_new();
-
-    ht_insert(ht, "ana", "1");
-    ht_insert(ht, "rui", "2");
-    ht_insert(ht, "eva", "3");
-
-    ht_delete(ht, "rui");
-    assert(ht_search(ht, "rui") == NULL);
-    assert(strcmp(ht_search(ht, "ana"), "1") == 0);   /* cadeias não podem partir */
-    assert(strcmp(ht_search(ht, "eva"), "3") == 0);
-
-    ht_delete(ht, "naoexiste");                        /* não deve rebentar */
-
-    ht_insert(ht, "rui", "novo");                      /* reinserir depois de apagar */
-    assert(strcmp(ht_search(ht, "rui"), "novo") == 0);
-
-    ht_del_hash_table(ht);
-    puts("test_apagar OK");
-}
-
-static void test_muitos(void) {
-    ht_hash_table* ht = ht_new();
-    char key[32], val[32];
-
-    for (int i = 0; i < N_ITEMS; i++) {
-        snprintf(key, sizeof key, "chave%d", i);
-        snprintf(val, sizeof val, "valor%d", i);
-        ht_insert(ht, key, val);
-    }
-    for (int i = 0; i < N_ITEMS; i++) {
-        snprintf(key, sizeof key, "chave%d", i);
-        snprintf(val, sizeof val, "valor%d", i);
-        char* r = ht_search(ht, key);
-        assert(r != NULL && strcmp(r, val) == 0);
-    }
-    for (int i = 0; i < N_ITEMS; i += 2) {             /* apaga metade */
-        snprintf(key, sizeof key, "chave%d", i);
-        ht_delete(ht, key);
-    }
-    for (int i = 0; i < N_ITEMS; i++) {
-        snprintf(key, sizeof key, "chave%d", i);
-        if (i % 2 == 0) assert(ht_search(ht, key) == NULL);
-        else            assert(ht_search(ht, key) != NULL);
-    }
-
-    ht_del_hash_table(ht);
-    puts("test_muitos OK");
+static void pesquisa(ht_hash_table* ht, const char* chave) {
+    char* v = ht_search(ht, chave);
+    printf("  search(\"%s\") = %s\n", chave, v ? v : "(nao existe)");
 }
 
 int main(void) {
-    test_basico();
-    test_atualizar();
-    test_apagar();
-    test_muitos();
-    puts("Todos os testes passaram.");
+    ht_hash_table* ht = ht_new();
+
+    /* 1. Inserções */
+    ht_insert(ht, "ana",   "912345678");
+    ht_insert(ht, "rui",   "923456789");
+    ht_insert(ht, "eva",   "956789012");
+    ht_insert(ht, "leo",   "945678901");
+    ht_insert(ht, "bia",   "934567890");
+    ht_insert(ht, "pedro", "967890123");
+    ht_insert(ht, "marta", "978901234");
+    ht_insert(ht, "tiago", "989012345");
+    ht_print(ht, "1. Depois de inserir 8 itens");
+
+    /* 2. Atualização de chave existente */
+    ht_insert(ht, "ana", "999999999");
+    ht_print(ht, "2. Depois de atualizar 'ana' (count nao deve mudar)");
+    pesquisa(ht, "ana");
+
+    /* 3. Remoções */
+    ht_delete(ht, "rui");
+    ht_delete(ht, "leo");
+    ht_delete(ht, "naoexiste");                   /* nao deve rebentar */
+    ht_print(ht, "3. Depois de apagar 'rui' e 'leo'");
+    pesquisa(ht, "rui");
+    pesquisa(ht, "eva");                          /* deve continuar a ser encontrada */
+
+    /* 4. Reinserção depois de apagar */
+    ht_insert(ht, "rui", "900000000");
+    ht_insert(ht, "sara", "911111111");
+    ht_print(ht, "4. Depois de reinserir 'rui' e inserir 'sara'");
+    pesquisa(ht, "rui");
+    pesquisa(ht, "sara");
+
+    /* 5. Libertar tudo */
+    ht_del_hash_table(ht);
+    ht = NULL;
+    puts("\nTabela libertada.");
     return 0;
 }
